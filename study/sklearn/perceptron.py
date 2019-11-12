@@ -38,5 +38,73 @@ ppn.fit(X_train_std, y_train)
 y_pred = ppn.predict(X_test_std)
 print('잘못 분류된 샘플 개수: %d' % (y_test !=y_pred).sum())
 
+from sklearn.metrics import accuracy_score
+print('정확도: %.2f' % accuracy_score(y_test, y_pred))
+print('정확도: %.2f' % ppn.score(X_test_std, y_test))
+
+from matplotlib.colors import ListedColormap
+import matplotlib.pyplot as plt
+
+def plot_decision_regions(X, y, classifier, test_idx=None, resolution=0.02):
+    markers = ('s','x','o','^','v')
+    colors = ('red','blue','lightgreen','gray','cyan')
+    cmap = ListedColormap(colors[:len(np.unique(y))])
+
+    # 결정 경계
+    x1_min, x1_max = X[:, 0].min() - 1, X[:, 0].max() + 1
+    x2_min, x2_max = X[:, 1].min() - 1, X[:, 1].max() +1
+    xx1, xx2 = np.meshgrid(np.arange(x1_min, x1_max, resolution),
+                        np.arange(x2_min, x2_max, resolution))
+    
+    Z = classifier.predict(np.array([xx1.ravel(), xx2.ravel()]).T)
+    Z = Z.reshape(xx1.shape)
+    plt.contourf(xx1, xx2, Z, alpha=0.3, cmap=cmap)
+    plt.xlim(xx1.min(), xx1.max())
+    plt.ylim(xx2.min(), xx2.max())
+
+    print(X)
+    for idx, cl in enumerate(np.unique(y)):
+        print(X[y==cl, 0])
+        # y==cl 로 비교하여 하나씩 그린다. 
+        # [true, false] 와 같은 배열로 true 인 곳만 골라서 그린다.
+        plt.scatter(x=X[y==cl, 0],
+                        y=X[y==cl,1],
+                        alpha=0.8,
+                        c=colors[idx],
+                        marker=markers[idx],
+                        label=cl,
+                        edgecolor='black')
+
+    print(test_idx)
+    if test_idx:
+        X_test, y_test = X[test_idx, :], y[test_idx]
+        print(y_test)
+        # s: size, marker : 모양 (s 는 스퀘어), alpha: 투명도(1이면 완전 불투명)
+        plt.scatter(X_test[:, 0],
+                    X_test[:, 1],
+                    c='',
+                    edgecolor='black',
+                    alpha=1.0,
+                    linewidth=1,
+                    marker='o',
+                    s=100,
+                    label='test set'
+                    )
+
+# print(X_train_std)
+# np.vstack : 열수가 같은 두개 이상의 배열을 행으로 연결
+X_combined_std = np.vstack((X_train_std, X_test_std))
+# np.hstack : 행수가 같은 두개 이상의 배열을 열로 연결
+y_combined = np.hstack((y_train, y_test))
+# print(X_combined_std)
+
+plot_decision_regions(X=X_combined_std, y=y_combined, classifier=ppn, test_idx=range(105, 150))
+
+plt.xlabel('petal length [standardize]')
+plt.ylabel('petal width [standardized]')
+plt.legend(loc='upper left')
+# 플롯간 간격 자동 맞춤
+plt.tight_layout()
+plt.show()
 
 
